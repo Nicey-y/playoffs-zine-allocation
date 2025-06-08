@@ -1,2 +1,7 @@
-*.csv
+artist_allocation.csv
+artist.csv
+slots_art.csv
+writer_allocation.csv
+writer.csv
+slots_write.csv
 *.txt
