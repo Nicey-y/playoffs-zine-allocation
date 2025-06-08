@@ -16,7 +16,6 @@ def log(content, initial_log=False):
         if not initial_log:
             file.write('\n')
 
-
 def allocate(person, slot):
     if (person.is_available() and slot.is_available()):
         log("Allocate " + person.get_name() + " to " + slot.get_name() + '\n')
@@ -42,15 +41,10 @@ def find_best_fit_person_indx(slot_pref_ls, slot_indx, col_count, participants, 
         else:
             person_flag = participants[j].is_available()
 
-        # log("considering " + participants[j].get_name())
-        # log("curr rank vs highest rank: " + str(slot_pref_ls[j]) + " - " + str(highest_rank))
-        # log(str(person_flag))
-        # log(str(participants[j].prefers(slot_indx)))
         if slot_pref_ls[j] < highest_rank and person_flag and participants[j].prefers(slot_indx):
             highest_rank = slot_pref_ls[j]
             highest_rank_indx = j # im sorry for identifying slot using index :sob:
-            # log("accept")
-        # log('\n')
+
     return highest_rank_indx
 
 # Step 2: loop though unallocated slots and allocate them to the first available person
@@ -89,10 +83,6 @@ def step2_loop(participants, slots, case_unallocated=True):
             # 2. look for the FIRST person who ranks it the HIGHEST
             for k in range(4): # put a limit on how many times we are looping to ensure no infinite loop
                 slot_pref_ls = slot.get_pref()
-                # if (k == 0): 
-                #     mode = True
-                # else:
-                #     mode = False
 
                 highest_rank_indx = find_best_fit_person_indx(slot_pref_ls, i, col_count, participants, case_unallocated=False)
                 log("  highest rank indx: " + str(highest_rank_indx))
@@ -142,7 +132,6 @@ def step4_loop(participants, slots, min_alloc=True):
             log("found someone unallocated")
             # unallocated -> find their 1st preference
             person_pref_ls = person.get_preferences()
-            # print(person_pref_ls)
 
             highest_rank = col_count # col_count > lowest rank, always
             highest_rank_indx = -1
@@ -161,10 +150,30 @@ def step4_loop(participants, slots, min_alloc=True):
                 # allocate
                 allocate(person, slot)
 
+def to_csv_artist(participants):
+    with open("artist_allocation.csv", 'w') as file:
+        for person in participants:
+            file.write(person.get_allocation() + '\n')
+
+def to_csv_writer(participants):
+    with open("writer_allocation.csv", 'w') as file:
+        for person in participants:
+            file.write(person.get_allocation() + '\n')
+
+def slot_to_csv_artist(slots):
+    with open("slots_art.csv", "w") as file:
+        for slot in slots:
+            file.write(slot.get_people() + '\n')
+
+def slot_to_csv_writer(slots):
+    with open("slots_write.csv", "w") as file:
+        for slot in slots:
+            file.write(slot.get_people() + '\n')
+
 ########################### END OF HELPER FUNCTIONS ###########################
 
 # Read csv file
-# file_path = "tests/writer-tests/test7.csv"
+# file_path = "tests/writer-tests/test7.csv" # for testing
 file_path = "writer.csv" # change to whatever your file name is
 df = pd.read_csv(file_path)
 log("", True)
@@ -266,7 +275,7 @@ while(switching_occurred):
 # for unallocated people, give them their highest preference if available
 step4_loop(participants, slots) # prioritise slots that haven't met minimum allocations
 
-##### WRITER MODE ONLY - ROUND 2 ALLOCATION
+##### WRITER MODE ONLY - ROUND 2 ALLOCATION #####
 if (exec_mode == 1):
     log("ROUND 2 ALLOCATION")
     for j in range(len(slots)):
@@ -281,16 +290,9 @@ if (exec_mode == 1):
             for i in range(len(slot_pref_ls)):
                 if slot_pref_ls[i] < highest_rank:
                     person = participants[i]
-                    # log("considering " + person.get_name())
-                    # log("curr rank vs highest rank: " + str(slot_pref_ls[i]) + " - " + str(highest_rank))
-                    # log(str(person.is_available()))
-                    # log(str(not person.has_been_allocated(slot)))
-                    # log(str(person.prefers(j)))
                     if person.is_available() and not person.has_been_allocated(slot) and person.prefers(j):
                         highest_rank = slot_pref_ls[i]
                         highest_rank_indx = i
-                        # log("accept")
-                    # log('\n')
                 
             if (highest_rank_indx == -1):
                 # forced to duplicate a slot to a person
@@ -328,32 +330,12 @@ step4_loop(participants, slots, False)
 ################################## RESULTS ####################################
 
 for person in participants:
-    log(person.get_allocation())
-# print("\n")
-# for slot in slots:
-#     log(slot.to_string())
+    log(person.get_allocation()) # print result to log.txt
 
-def to_csv_artist(participants):
-    with open("artist_allocation.csv", 'w') as file:
-        for person in participants:
-            file.write(person.get_allocation() + '\n')
-
-def to_csv_writer(participants):
-    with open("writer_allocation.csv", 'w') as file:
-        for person in participants:
-            file.write(person.get_allocation() + '\n')
-
-def slot_to_csv_artist(slots):
-    with open("slots_art.csv", "w") as file:
-        for slot in slots:
-            file.write(slot.get_people() + '\n')
-
-def slot_to_csv_writer(slots):
-    with open("slots_write.csv", "w") as file:
-        for slot in slots:
-            file.write(slot.get_people() + '\n')
-
+# Get artist allocation result as .csv file, uncomment to use
 # to_csv_artist(participants)
 # slot_to_csv_artist(slots)
-to_csv_writer(participants)
-slot_to_csv_writer(slots)
+
+# Get writer allocation result as .csv file, uncomment to use
+# to_csv_writer(participants)
+# slot_to_csv_writer(slots)
